@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     environment {
-        // Define any environment variables you need
         CUSTOM_WORKSPACE = '/var/jenkins_home/workspace/Abhishek'
     }
 
@@ -10,10 +9,8 @@ pipeline {
         stage('Checkout') {
             steps {
                 script {
-                    // Checkout the code from the repository using Jenkins credentials
-                    echo 'Cloning the Git repository...'
                     dir(CUSTOM_WORKSPACE) {
-                        // Use the credentials ID to authenticate
+                        // Checkout the code from the repository using credentials
                         git branch: 'main', url: 'https://github.com/Hariveerj/Abhishek.git', credentialsId: 'gitcredentials'
                         echo 'Successfully cloned the repository.'
                     }
@@ -25,13 +22,14 @@ pipeline {
             steps {
                 script {
                     dir(CUSTOM_WORKSPACE) {
-                        // Build the Docker image
-                        echo 'Building the Docker image...'
                         try {
+                            echo 'Building the Docker image...'
+                            // Build Docker image
                             docker.build('my-app')
                             echo 'Docker image built successfully.'
                         } catch (Exception e) {
-                            error "Failed to build Docker image: ${e.message}"
+                            echo "Failed to build Docker image: ${e.getMessage()}"
+                            currentBuild.result = 'FAILURE'
                         }
                     }
                 }
@@ -42,13 +40,14 @@ pipeline {
             steps {
                 script {
                     dir(CUSTOM_WORKSPACE) {
-                        // Run Docker Compose to start the services
-                        echo 'Starting services with Docker Compose...'
                         try {
+                            echo 'Running Docker Compose...'
+                            // Run Docker Compose to start services
                             sh 'docker-compose up -d'
-                            echo 'Services started successfully.'
+                            echo 'Docker Compose services started.'
                         } catch (Exception e) {
-                            error "Failed to start services with Docker Compose: ${e.message}"
+                            echo "Failed to run Docker Compose: ${e.getMessage()}"
+                            currentBuild.result = 'FAILURE'
                         }
                     }
                 }
@@ -59,14 +58,14 @@ pipeline {
     post {
         always {
             script {
-                // Clean up: stop and remove containers, networks, etc.
                 dir(CUSTOM_WORKSPACE) {
-                    echo 'Cleaning up Docker Compose services...'
                     try {
+                        echo 'Cleaning up Docker Compose services...'
+                        // Stop and remove containers
                         sh 'docker-compose down'
-                        echo 'Docker Compose services stopped and removed successfully.'
+                        echo 'Docker Compose services cleaned up.'
                     } catch (Exception e) {
-                        echo "Failed to clean up Docker Compose services: ${e.message}"
+                        echo "Failed to clean up Docker Compose services: ${e.getMessage()}"
                     }
                 }
             }
