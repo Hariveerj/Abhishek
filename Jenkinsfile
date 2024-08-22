@@ -10,7 +10,7 @@ pipeline {
       steps {
         dir(CUSTOM_WORKSPACE) {
           // checkout code from github
-          git 
+          git 'https://github.com/Hariveerj/Abhishek.git'
         }
       }
     }
